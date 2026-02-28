@@ -1,0 +1,158 @@
+"""
+Module d'identité permanente - Ed25519
+Sprint 2 - ARCHIPEL
+"""
+
+import os
+import hashlib
+from pathlib import Path
+from typing import Optional, Tuple
+from dataclasses import dataclass
+from cryptography.hazmat.primitives.asymmetric import ed25519
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
+
+
+@dataclass
+class NodeIdentity:
+    """Identité permanente d'un nœud Archipel"""
+    node_id: bytes          # 32 bytes - SHA256(clé publique)
+    public_key: bytes       # 32 bytes - clé Ed25519 brute
+    private_key_path: Path  # Chemin vers clé privée chiffrée
+    
+    def __post_init__(self):
+        if len(self.node_id) != 32:
+            raise ValueError(f"Node ID must be 32 bytes, got {len(self.node_id)}")
+        if len(self.public_key) != 32:
+            raise ValueError(f"Public key must be 32 bytes, got {len(self.public_key)}")
+
+
+class IdentityManager:
+    """
+    Gestionnaire d'identité permanente
+    - Génération clés Ed25519
+    - Chargement/sauvegarde sécurisée
+    - Signature et vérification
+    """
+    
+    def __init__(self, keys_dir: Path = Path("keys")):
+        self.keys_dir = keys_dir
+        self.keys_dir.mkdir(parents=True, exist_ok=True)
+        self._private_key: Optional[ed25519.Ed25519PrivateKey] = None
+        self._public_key: Optional[ed25519.Ed25519PublicKey] = None
+        self._node_id: Optional[bytes] = None
+    
+    def generate_identity(self, node_name: str, password: bytes) -> NodeIdentity:
+        """Génère une nouvelle identité Ed25519"""
+        # Génération paire de clés
+        private_key = ed25519.Ed25519PrivateKey.generate()
+        public_key = private_key.public_key()
+        
+        # Extraction clé publique brute (32 bytes)
+        public_bytes = public_key.public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw
+        )
+        
+        # Calcul Node_ID = SHA256(clé publique) tronqué 32 bytes
+        node_id = hashlib.sha256(public_bytes).digest()[:32]
+        
+        # Sauvegarde clé privée (chiffrée)
+        priv_path = self.keys_dir / f"{node_name}_ed25519_private.pem"
+        priv_path.write_bytes(
+            private_key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.BestAvailableEncryption(password),
+            )
+        )
+        
+        # Sauvegarde clé publique
+        pub_path = self.keys_dir / f"{node_name}_ed25519_public.pem"
+        pub_path.write_bytes(
+            public_key.public_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo,
+            )
+        )
+        
+        # Sauvegarde Node_ID (format brut)
+        node_id_path = self.keys_dir / f"{node_name}_node_id.bin"
+        node_id_path.write_bytes(node_id)
+        
+        self._private_key = private_key
+        self._public_key = public_key
+        self._node_id = node_id
+        
+        return NodeIdentity(
+            node_id=node_id,
+            public_key=public_bytes,
+            private_key_path=priv_path
+        )
+    
+    def load_identity(self, node_name: str, password: bytes) -> NodeIdentity:
+        """Charge une identité existante"""
+        priv_path = self.keys_dir / f"{node_name}_ed25519_private.pem"
+        pub_path = self.keys_dir / f"{node_name}_ed25519_public.pem"
+        node_id_path = self.keys_dir / f"{node_name}_node_id.bin"
+        
+        # Vérification existence
+        if not all(p.exists() for p in [priv_path, pub_path, node_id_path]):
+            raise FileNotFoundError(f"Identity for {node_name} not found")
+        
+        # Chargement clé privée
+        with open(priv_path, "rb") as f:
+            self._private_key = load_pem_private_key(f.read(), password=password)
+        
+        # Chargement clé publique
+        with open(pub_path, "rb") as f:
+            self._public_key = load_pem_public_key(f.read())
+        
+        # Chargement Node_ID
+        self._node_id = node_id_path.read_bytes()
+        
+        # Vérification cohérence
+        public_bytes = self._public_key.public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw
+        )
+        computed_id = hashlib.sha256(public_bytes).digest()[:32]
+        
+        if computed_id != self._node_id:
+            raise ValueError("Node ID mismatch: keys are corrupted")
+        
+        return NodeIdentity(
+            node_id=self._node_id,
+            public_key=public_bytes,
+            private_key_path=priv_path
+        )
+    
+    def sign(self, data: bytes) -> bytes:
+        """Signe des données avec la clé privée permanente"""
+        if not self._private_key:
+            raise RuntimeError("Identity not loaded")
+        return self._private_key.sign(data)
+    
+    def verify(self, signature: bytes, data: bytes, public_key: bytes) -> bool:
+        """Vérifie une signature Ed25519"""
+        try:
+            pub_key = ed25519.Ed25519PublicKey.from_public_bytes(public_key)
+            pub_key.verify(signature, data)
+            return True
+        except Exception:
+            return False
+    
+    @property
+    def node_id(self) -> bytes:
+        if not self._node_id:
+            raise RuntimeError("Identity not loaded")
+        return self._node_id
+    
+    @property
+    def public_key(self) -> bytes:
+        if not self._public_key:
+            raise RuntimeError("Identity not loaded")
+        return self._public_key.public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw
+        )

@@ -1,0 +1,202 @@
+bash
+# Terminal 1 (Machine A - Port 38834)
+python -m src.archipel.main --port 38834 --name "Node-Alice"
+
+# Terminal 2 (Machine B - Port 38835)
+python -m src.archipel.main --port 38835 --name "Node-Bob"
+
+# Terminal 3 (Machine C - Port 38836)
+python -m src.archipel.main --port 38836 --name "Node-Charlie"
+Checklist validation
+Test	Action	Résultat attendu	
+Découverte	Attendre 60s après lancement	Chaque nœud voit les 2 autres dans sa peer table	
+Chiffrement	msg Node-Bob "Hello chiffré"	Wireshark montre uniquement des octets chiffrés	
+Manifest	send demo/file-50mb.bin	Manifest broadcast à tous les pairs	
+Transfert parallèle	download FILE_ID depuis Charlie	Téléchargement depuis Alice ET Bob simultanément	
+Résilience	Ctrl+C sur Bob en cours de transfert	Transfert continue via Alice uniquement	
+Intégrité	Comparer SHA256 source/destination	Identique	
+Module 5.2 — Nettoyage et optimisation
+Vérifications techniques obligatoires
+bash
+# 1. Vérifier l'absence de clés en clair dans le code
+grep -r "PRIVATE_KEY" --include="*.py" src/
+grep -r "BEGIN RSA PRIVATE" --include="*.py" src/
+
+# 2. Tester en mode 100% offline
+ipconfig /release  # Windows (libère IP)
+# ou
+sudo ifconfig eth0 down  # Linux
+
+# Relancer les nœuds - tout doit fonctionner sans Internet
+
+# 3. Vérifier les timeouts et expirations
+# - Pair inactif > 90s = retiré de la table
+# - Chunk non reçu > 30s = re-demande à un autre pair
+Optimisations de dernière minute
+Réduire les logs en mode production (logging.INFO → logging.WARNING)
+
+Vérifier qu'aucun port n'est hardcodé (tous dans .env)
+
+Tester avec fichier 100MB pour confirmer la montée en charge
+
+Ajouter timeout global aux requêtes TCP (30s max)
+
+Module 5.3 — Documentation finale
+README.md — Structure obligatoire
+markdown
+# ARCHIPEL — Protocole P2P Chiffré Décentralisé
+
+## Équipe
+- Alice Dupont (Cryptographie)
+- Bob Martin (Réseau)
+- Charlie Dubois (Intégration)
+
+## Architecture implémentée
+[Schéma ASCII ou image]
+
+## Choix techniques
+- **Langage** : Python 3.12 (asyncio pour I/O non-bloquant)
+- **Découverte** : UDP Multicast (239.255.42.99:6000)
+- **Transport** : TCP avec sessions chiffrées
+- **Cryptographie** : 
+  - Ed25519 (identité)
+  - X25519 + AES-256-GCM (chiffrement)
+  - SHA-256 (intégrité fichiers)
+
+## Format de paquet
+MAGIC(4) | TYPE(1) | NODE_ID(32) | LEN(4) | PAYLOAD | HMAC(32)
+
+text
+
+## Installation rapide
+```bash
+git clone <repo>
+cd archipel
+python -m venv .venv
+source .venv/bin/activate  # ou .venv\Scripts\activate sous Windows
+pip install -r requirements.txt
+cp .env.example .env
+# Éditer .env avec vos paramètres
+Guide démo (5 minutes)
+1. Lancement 3 nœuds
+bash
+# Terminal 1
+python -m src.archipel.main --port 38834 --name "Alice"
+
+# Terminal 2  
+python -m src.archipel.main --port 38835 --name "Bob"
+
+# Terminal 3
+python -m src.archipel.main --port 38836 --name "Charlie"
+2. Vérification découverte (< 60s)
+Chaque terminal affiche :
+
+text
+[PEERS] 2 pairs connectés
+- Bob (192.168.1.5:38835) last seen 2s ago
+- Charlie (192.168.1.8:38836) last seen 3s ago
+3. Message chiffré
+bash
+# Depuis Alice
+msg Bob "Ce message est chiffré"
+# Vérifier avec Wireshark : payload illisible
+4. Transfert fichier 50MB
+bash
+# Alice partage
+send demo/file-50mb.bin
+
+# Bob télécharge (automatiquement depuis Alice ET Charlie)
+download a1b2c3d4...e5f6
+Sécurité implémentée
+✅ Chiffrement bout-en-bout (pas de clair sur le réseau)
+
+✅ Forward secrecy (clés éphémères par session)
+
+✅ Authentification via TOFU + Web of Trust
+
+✅ Signature de tous les paquets
+
+✅ Nonces aléatoires pour AES-GCM
+
+Limitations connues
+Découverte limitée au sous-réseau local (pas de routage multicast)
+
+Pas de NAT traversal
+
+Réplication manuelle uniquement
+
+Pistes d'amélioration
+Implémenter DHT Kademlia pour découverte跨 réseau
+
+Ajouter compression des chunks
+
+Interface web React
+
+text
+
+---
+
+## Module 5.4 — Préparation démo jury
+
+### Script de démo chronométré (5 minutes)
+
+| Temps | Action | À dire au jury |
+|-------|--------|----------------|
+| 0:00 | Lancer 3 terminaux avec `--name` | "Nous lançons 3 nœuds sur le réseau local, sans Internet" |
+| 0:30 | Montrer les peer tables | "En moins de 60s, ils se découvrent automatiquement via UDP multicast" |
+| 1:00 | Envoyer un message chiffré | "Le message est chiffré bout-en-bout, voici la capture Wireshark" |
+| 1:30 | Partager un fichier 50MB | "Notre algorithme de chunking découpe le fichier en blocs de 512KB" |
+| 2:00 | Montrer le transfert parallèle | "Chaque bloc est téléchargé depuis la source la plus rapide" |
+| 2:30 | Simuler une déconnexion (Ctrl+C sur un nœud) | "Le transfert continue via les autres pairs — résilience mesh" |
+| 3:00 | Montrer la vérification SHA256 | "L'intégrité est vérifiée bloc par bloc" |
+| 3:30 | Ouvrir le README | "Notre documentation complète avec architecture et commandes" |
+| 4:00 | Démontrer l'absence d'Internet | "Nous pouvons couper la connexion, tout continue de fonctionner" |
+| 4:30 | Questions/Réponses | |
+
+### Checklist matérielle pré-démo
+- [ ] 3 ordinateurs (ou 3 fenêtres terminal) prêts
+- [ ] Fichier `demo/file-50mb.bin` présent sur la machine source
+- [ ] Wireshark installé et prêt à capturer sur l'interface loopback ou LAN
+- [ ] `.env` configuré avec les bons ports (38834, 38835, 38836)
+- [ ] Aucune connexion Internet active sur les machines de démo
+- [ ] Le repository est en public sur GitHub
+
+---
+
+## Module 5.5 — Finalisation Git
+
+### Derniers commits avant soumission
+
+```bash
+# 1. Nettoyer les branches de travail
+git checkout main
+git merge develop --no-ff -m "Merge sprint-5 finalization"
+
+# 2. Taguer la version finale
+git tag -a "final-submission" -m "Submission Archipel Hackathon 2026"
+
+# 3. Vérifier que TOUS les fichiers nécessaires sont versionnés
+git status
+# Vérifier que .env n'est PAS commité (doit être dans .gitignore)
+
+# 4. Push final
+git push origin main
+git push origin --tags
+Vérifications ultimes
+bash
+# Cloner dans un nouveau dossier pour tester l'installation fraîche
+cd /tmp
+git clone <votre-repo> archipel-test
+cd archipel-test
+
+# Suivre le README étape par étape
+# Tout doit fonctionner du premier coup
+LIVRABLE FINAL
+À l'issue de ce Sprint 5, vous devez avoir :
+
+Livrable	Emplacement	Critère
+✅ Code source	GitHub (public)	Dernier commit tagué final-submission
+✅ README.md	Racine du repo	Complet, sans erreur, prêt à être lu par le jury
+✅ Démo fonctionnelle	3 machines/terminaux	Scénario 5 minutes sans accroc
+✅ Pas de clés sensibles	Aucun fichier .env ou .pem dans le repo	.gitignore propre
+✅ Tests offline	Coupure Internet	Tout fonctionne

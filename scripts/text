@@ -1,0 +1,49 @@
+
+---
+
+## Module 5.4 — Préparation démo jury
+
+### Script de démo chronométré (5 minutes)
+
+| Temps | Action | À dire au jury |
+|-------|--------|----------------|
+| 0:00 | Lancer 3 terminaux avec `--name` | "Nous lançons 3 nœuds sur le réseau local, sans Internet" |
+| 0:30 | Montrer les peer tables | "En moins de 60s, ils se découvrent automatiquement via UDP multicast" |
+| 1:00 | Envoyer un message chiffré | "Le message est chiffré bout-en-bout, voici la capture Wireshark" |
+| 1:30 | Partager un fichier 50MB | "Notre algorithme de chunking découpe le fichier en blocs de 512KB" |
+| 2:00 | Montrer le transfert parallèle | "Chaque bloc est téléchargé depuis la source la plus rapide" |
+| 2:30 | Simuler une déconnexion (Ctrl+C sur un nœud) | "Le transfert continue via les autres pairs — résilience mesh" |
+| 3:00 | Montrer la vérification SHA256 | "L'intégrité est vérifiée bloc par bloc" |
+| 3:30 | Ouvrir le README | "Notre documentation complète avec architecture et commandes" |
+| 4:00 | Démontrer l'absence d'Internet | "Nous pouvons couper la connexion, tout continue de fonctionner" |
+| 4:30 | Questions/Réponses | |
+
+### Checklist matérielle pré-démo
+- [ ] 3 ordinateurs (ou 3 fenêtres terminal) prêts
+- [ ] Fichier `demo/file-50mb.bin` présent sur la machine source
+- [ ] Wireshark installé et prêt à capturer sur l'interface loopback ou LAN
+- [ ] `.env` configuré avec les bons ports (38834, 38835, 38836)
+- [ ] Aucune connexion Internet active sur les machines de démo
+- [ ] Le repository est en public sur GitHub
+
+---
+
+## Module 5.5 — Finalisation Git
+
+### Derniers commits avant soumission
+
+```bash
+# 1. Nettoyer les branches de travail
+git checkout main
+git merge develop --no-ff -m "Merge sprint-5 finalization"
+
+# 2. Taguer la version finale
+git tag -a "final-submission" -m "Submission Archipel Hackathon 2026"
+
+# 3. Vérifier que TOUS les fichiers nécessaires sont versionnés
+git status
+# Vérifier que .env n'est PAS commité (doit être dans .gitignore)
+
+# 4. Push final
+git push origin main
+git push origin --tags

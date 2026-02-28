@@ -1,0 +1,136 @@
+# ARCHIPEL — Sprint 1 : Découverte P2P et Table de Pairs
+
+## Objectif Sprint 1
+**3 nœuds se découvrent automatiquement en < 60s en local, avec affichage dynamique de la table des pairs.**
+
+## Stack
+- **Langage** : Python 3.12
+- **Découverte** : UDP multicast (239.255.1.1:38834)
+- **Identité** : Ed25519 (cryptographie)
+- **Affichage** : Console avec mise à jour temps réel
+
+## Architecture simplifiée
+```
+[Node A:38834] <──UDP multicast──> [Node B:38835] <──UDP multicast──> [Node C:38836]
+      │                                     │                                  │
+      └───────────── Tables des pairs dynamiques ─────────────────────────────┘
+```
+
+## Format des paquets UDP (v1)
+```
+MAGIC(4) | TYPE(1) | NODE_ID(32) | PORT(2) | TIMESTAMP(4) | SIG(64)
+```
+- **MAGIC** : `0x41524348` ("ARCH")
+- **TYPE** : `0x01` = HELLO, `0x02` = PEER_LIST
+- **NODE_ID** : Clé publique Ed25519 (32 octets)
+- **PORT** : Port TCP d'écoute (pour futur transfert)
+- **TIMESTAMP** : Unix timestamp (lutte contre replay)
+- **SIG** : Signature Ed25519 du payload
+
+## Installation
+
+```bash
+# 1. Cloner et entrer dans le projet
+git clone <repo>
+cd archipel4/archipel
+
+# 2. Créer l'environnement virtuel
+python -m venv .venv
+
+# 3. Activer l'environnement
+# Windows (PowerShell) :
+.venv\Scripts\Activate.ps1
+# Windows (Git Bash) :
+source .venv/Scripts/activate
+# Linux/Mac :
+source .venv/bin/activate
+
+# 4. Installer les dépendances
+pip install -r requirements.txt
+
+# 5. Configurer (optionnel)
+cp .env.example .env
+```
+
+## Lancement Sprint 1 (3 terminaux)
+
+### Terminal 1 — Nœud A (port 38834)
+```bash
+cd archipel4/archipel
+source .venv/Scripts/activate  # ou .venv\Scripts\activate sous PowerShell
+python -m src.archipel.main --discover --port 38834 --name "Node-A"
+```
+
+### Terminal 2 — Nœud B (port 38835)
+```bash
+cd archipel4/archipel
+source .venv/Scripts/activate
+python -m src.archipel.main --discover --port 38835 --name "Node-B"
+```
+
+### Terminal 3 — Nœud C (port 38836)
+```bash
+cd archipel4/archipel
+source .venv/Scripts/activate
+python -m src.archipel.main --discover --port 38836 --name "Node-C"
+```
+
+## Résultat attendu
+Chaque terminal affiche une table des pairs mise à jour automatiquement :
+```
+[ARCHIPEL] Node 'Node-A' (ID: a1b2c3...) démarré sur port 38834
+[INFO] Découverte multicast active sur 239.255.1.1:38834
+
+=== TABLE DES PAIRS (mise à jour toutes les 10s) ===
+| Nom    | Adresse         | Port  | ID (premiers 8) | Dernière vue |
+|--------|-----------------|-------|-----------------|--------------|
+| Node-B | 192.168.1.10    | 38835 | b2c3d4e5        | 0.5s         |
+| Node-C | 192.168.1.10    | 38836 | c3d4e5f6        | 1.2s         |
+Total: 2 pairs connectés
+```
+
+## Structure des fichiers Sprint 1
+```
+src/archipel/
+├── main.py                 # Point d'entrée avec argparse
+├── crypto/
+│   ├── __init__.py
+│   └── manager.py          # Génération clés Ed25519, signature
+├── network/
+│   ├── __init__.py
+│   └── discovery.py        # UDP multicast (envoi/réception)
+├── peer/
+│   ├── __init__.py
+│   └── table.py            # Stockage et expiration des pairs
+├── protocol/
+│   ├── __init__.py
+│   └── packet.py           # Encodage/décodage des paquets
+└── utils/
+    └── console.py          # Affichage coloré de la table
+```
+
+## Critères de validation Sprint 1
+- [x] 3 nœuds démarrent sans connexion Internet
+- [x] Découverte mutuelle en < 60s
+- [x] Table des pairs affichée dynamiquement
+- [x] Expiration des pairs inactifs (> 30s)
+- [x] ZÉRO connexion Internet requise
+
+## Dépannage rapide
+
+### Sous Windows (Firewall)
+```powershell
+# Autoriser Python dans le firewall
+New-NetFirewallRule -DisplayName "ARCHIPEL UDP" -Direction Inbound -Protocol UDP -LocalPort 38834-38836 -Action Allow
+```
+
+### Vérifier la réception multicast
+```bash
+# Tester l'envoi UDP (depuis Git Bash)
+echo "test" | nc -u 239.255.1.1 38834
+```
+
+### Si les nœuds ne se voient pas
+1. Vérifier que tous les ports sont différents
+2. Désactiver temporairement le firewall
+3. Utiliser `ipconfig` pour connaître son IP locale

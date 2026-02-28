@@ -1,0 +1,20 @@
+<script>
+
+// Animation légère au clic
+document.querySelectorAll(".card").forEach(card => {
+    card.addEventListener("click", function(){
+        this.style.transform = "scale(0.95)";
+        setTimeout(() => {
+            this.style.transform = "scale(1)";
+        }, 150);
+    });
+});
+
+</script>
+
+<footer>
+    <p>© 2026 Noble Canine - Tous droits réservés G3 Charbel ,Mathias , Souleymane </p>
+</footer>
+
+
+<script src="script.js"></script>

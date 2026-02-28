@@ -1,0 +1,8 @@
+# Lister les pairs connus
+python -m archipel.main trust list
+
+# Signer la clé d'un pair
+python -m archipel.main trust sign a1b2c3d4...
+
+# Vérifier la confiance
+python -m archipel.main trust verify a1b2c3d4...

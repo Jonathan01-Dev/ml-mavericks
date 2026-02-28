@@ -1,0 +1,158 @@
+/* ================= RESET ================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ================= BODY ================= */
+body {
+    font-family: Arial, sans-serif;
+    background: #0a0a0a;
+    color: #ffffff;
+    line-height: 1.6;
+}
+
+/* ================= HEADER ================= */
+header {
+    background: #000;
+    padding: 20px 0;
+    border-bottom: 2px solid #d4af37;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.container {
+    width: 90%;
+    max-width: 1100px;
+    margin: auto;
+    text-align: center;
+}
+
+header h1 {
+    color: #d4af37;
+    margin-bottom: 10px;
+}
+
+/* ================= NAVBAR ================= */
+nav {
+    margin-top: 10px;
+}
+
+nav a {
+    color: #fff;
+    text-decoration: none;
+    margin: 0 15px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+nav a:hover,
+nav a.active {
+    color: #d4af37;
+}
+
+/* ================= SECTIONS ================= */
+.section {
+    padding: 80px 20px;
+    max-width: 900px;
+    margin: auto;
+    text-align: center;
+}
+
+.section h2 {
+    color: #d4af37;
+    margin-bottom: 20px;
+}
+
+.section h3 {
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+
+/* ================= IMAGE ================= */
+.main-image {
+    width: 100%;
+    max-width: 500px;
+    margin: 20px 0;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(212,175,55,0.4);
+}
+
+/* ================= SERVICES ================= */
+.services {
+    list-style: none;
+}
+
+.services li {
+    margin: 10px 0;
+    padding: 12px;
+    border: 1px solid #333;
+    border-radius: 6px;
+    transition: 0.3s;
+}
+
+.services li:hover {
+    background: #111;
+    border-color: #d4af37;
+}
+
+/* ================= DARK SECTION ================= */
+.dark {
+    background: #111;
+}
+
+/* ================= FORM ================= */
+form {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+input, textarea {
+    padding: 12px;
+    border: 1px solid #333;
+    background: #1a1a1a;
+    color: #fff;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+input:focus, textarea:focus {
+    border-color: #d4af37;
+    outline: none;
+}
+
+button {
+    padding: 12px;
+    border: none;
+    background: #d4af37;
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #b8962e;
+}
+
+/* ================= FOOTER ================= */
+footer {
+    background: #000;
+    text-align: center;
+    padding: 20px;
+    margin-top: 40px;
+    border-top: 1px solid #333;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+    nav a {
+        display: block;
+        margin: 10px 0;
+    }
+}

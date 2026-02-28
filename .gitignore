@@ -1,0 +1,162 @@
+# === ARCHIPEL - .gitignore SPRINT 0 ===
+# Hackathon 24h - La Piscine_LBS Ed1
+
+# === CLÉS ET SÉCURITÉ ===
+# Ne JAMAIS committer les clés privées, tokens, secrets
+.runtime/
+.runtime/api_key.txt
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+*.keystore
+*.jks
+secrets/
+credentials.json
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# === CLÉS GÉNÉRÉES PAR LE PROJET ===
+keys/
+keys/*.pem
+keys/*.bin
+keys/*_private.pem
+keys/*_public.pem
+keys/*_node_id.bin
+
+# === FICHIERS DE CONFIGURATION LOCALE ===
+config.local.yaml
+config.local.json
+config.local.toml
+settings.local.py
+*.local
+
+# === ENVIRONNEMENT PYTHON ===
+# Virtual environment
+venv/
+env/
+.env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+pythonenv*
+
+# Bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+
+# === FICHIERS DE TEST ET DONNÉES VOLUMINEUSES ===
+# Fichiers de test binaires (50MB+)
+test-50mb.bin
+*.test-50mb.bin
+*.bintest-50mb.bin
+test-data/
+*.test-data/
+*.bin
+*.iso
+*.img
+large_files/
+temp_data/
+*.tmp
+*.temp
+
+# === DOSSIERS RUNTIME ET CACHE ===
+.runtime/
+.archipel/
+.archipel/sprint0_hello.packet
+.archipel/sprint0_report.json
+.cache/
+.tmp/
+temp/
+logs/
+*.log
+*.log.*
+
+# === DOSSIERS PLAN B (API de secours) ===
+.planb/
+planb_data/
+.planb_runtime/
+api_keys/
+
+# === ARTEFACTS DE BUILD ===
+dist/
+build/
+*.egg-info/
+*.egg
+*.whl
+*.tar.gz
+*.zip
+*.so
+*.dll
+*.dylib
+
+# === DOSSIERS IDÉ (Editeurs) ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === DOCUMENTS TEMPORAIRES ===
+*.bak
+*.backup
+*.old
+*.orig
+*.tmp
+temp_*
+
+# === LOGS DU PROJET ===
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# === RAPPORTS DE TEST ===
+test-reports/
+coverage/
+htmlcov/
+.coverage
+.coverage.*
+*.cover
+*.py,cover
+.coverage.xml
+coverage.json
+*.trx
+
+# === PROFILING ===
+*.prof
+*.stats
+profile_output/
+perf.data*
+
+# === ARCHIVES DE LIVRABLES (garder propres) ===
+archipel-sprint0.tar.gz
+archipel-*.tar.gz
+PRESENTATION_*.tar.gz
+livrables/
+!livrables/README.md
+
+# === FICHIERS SPÉCIFIQUES AU HACKATHON ===
+backup-*.py
+scratch/
+scratchpad/
+temp-code/
+test_scratch/
+*.scratch.py
+test_*.scratch.py

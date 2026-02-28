@@ -1,0 +1,222 @@
+# === FICHIER LICENSE ===
+cat > LICENSE << 'EOF'
+BSD 3-Clause License
+
+Copyright (c) 2024, Équipe Archipel - Hackathon "La Piscine_LBS Ed1"
+Adnane, Charbel, Jameel Stacks - ML Mavericks
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+EOF
+
+# === FICHIER .GITIGNORE ===
+cat > .gitignore << 'EOF'
+# === ARCHIPEL - .gitignore SPRINT 0 ===
+
+# CLÉS ET SÉCURITÉ
+.runtime/
+.runtime/api_key.txt
+*.key
+*.pem
+*.crt
+keys/
+keys/*.pem
+keys/*.bin
+keys/*_private.pem
+keys/*_public.pem
+keys/*_node_id.bin
+
+# ENVIRONNEMENT
+.env
+.env.local
+.env.*.local
+venv/
+env/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# FICHIERS DE TEST
+test-50mb.bin
+*.test-50mb.bin
+*.bintest-50mb.bin
+*.bin
+large_files/
+
+# RUNTIME ET CACHE
+.runtime/
+.archipel/
+.archipel/sprint0_hello.packet
+.archipel/sprint0_report.json
+logs/
+*.log
+
+# PLAN B
+.planb/
+.planb_runtime/
+api_keys/
+
+# ARTEFACTS
+dist/
+build/
+*.egg-info/
+*.tar.gz
+*.zip
+
+# ÉDITEURS
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# TEMPORAIRES
+*.bak
+*.backup
+*.tmp
+temp_*
+EOF
+
+# === CRÉER LA STRUCTURE DE DOSSIERS ===
+mkdir -p archipel/plan_b scripts .runtime
+
+# === FICHIER CLIENT.PY ===
+cat > archipel/plan_b/client.py << 'EOF'
+"""Plan B Client - API de secours"""
+
+import os
+import json
+from pathlib import Path
+from typing import Optional, Dict, Any
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+class PlanBClient:
+    def __init__(self, base_url: str = "http://127.0.0.1:5055", api_key: Optional[str] = None):
+        self.base_url = base_url.rstrip('/')
+        self.api_key = api_key or self._load_api_key()
+        
+        if not self.api_key:
+            raise ValueError("API key required")
+        
+        self.session = self._create_session()
+    
+    def _load_api_key(self) -> Optional[str]:
+        env_key = os.getenv("ARCHIPEL_PLANB_KEY")
+        if env_key:
+            return env_key
+        
+        key_path = Path(".runtime/api_key.txt")
+        if key_path.exists():
+            return key_path.read_text().strip()
+        
+        return None
+    
+    def _create_session(self):
+        session = requests.Session()
+        session.headers.update({
+            "X-API-Key": self.api_key,
+            "Content-Type": "application/json",
+        })
+        
+        retry_strategy = Retry(total=3, backoff_factor=1)
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        session.mount("http://", adapter)
+        
+        return session
+    
+    def status(self) -> Dict[str, Any]:
+        try:
+            response = self.session.get(f"{self.base_url}/status", timeout=5)
+            response.raise_for_status()
+            return response.json()
+        except:
+            return {"status": "error", "message": "API not reachable"}
+    
+    def ping(self) -> bool:
+        try:
+            resp = self.session.get(f"{self.base_url}/ping", timeout=2)
+            return resp.status_code == 200
+        except:
+            return False
+EOF
+
+# === FICHIER INIT_PLANB.SH ===
+cat > scripts/init_planb.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "🚀 Initialisation Plan B"
+echo "========================"
+
+mkdir -p .runtime .planb logs
+
+if [ ! -f .runtime/api_key.txt ]; then
+    echo "📝 Génération clé API..."
+    openssl rand -hex 32 > .runtime/api_key.txt
+    echo "✅ Clé: $(cat .runtime/api_key.txt | cut -c1-8)..."
+else
+    echo "✅ Clé existante: $(cat .runtime/api_key.txt | cut -c1-8)..."
+fi
+
+echo ""
+echo "✅ Plan B prêt"
+EOF
+
+# === FICHIER ROTATE_PLANB_KEY.PY ===
+cat > scripts/rotate_planb_key.py << 'EOF'
+#!/usr/bin/env python3
+import secrets
+from pathlib import Path
+
+def generate_api_key() -> str:
+    return secrets.token_hex(32)
+
+def main():
+    key_path = Path(".runtime/api_key.txt")
+    new_key = generate_api_key()
+    
+    key_path.parent.mkdir(exist_ok=True)
+    key_path.write_text(new_key + "\n")
+    
+    print(f"✅ Nouvelle clé: {new_key[:8]}...{new_key[-8:]}")
+    print(f"📁 Fichier: {key_path}")
+
+if __name__ == "__main__":
+    main()
+EOF
+
+# === RENDRE LES SCRIPTS EXÉCUTABLES ===
+chmod +x scripts/*.sh scripts/*.py
+
+# === CRÉER LA CLÉ API DE TEST ===
+echo "7292faad2ef9b86691f8c7745404f1353eab3e6cd3203bcfd337d3b425eab869" > .runtime/api_key.txt

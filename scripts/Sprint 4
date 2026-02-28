@@ -1,0 +1,64 @@
+# ARCHIPEL — Protocole P2P Chiffré et Décentralisé
+
+[![License: BSD 3-Clause](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](LICENSE)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Sprint 4](https://img.shields.io/badge/sprint-4-brightgreen)]()
+
+## 📋 Contexte et Mission
+
+Archipel est un protocole de communication Peer-to-Peer (P2P) conçu pour fonctionner **sans Internet, sans serveur central et sans autorité de certification**. L'objectif est de créer un réseau local souverain où chaque nœud est à la fois client et serveur — inspiré de BitTorrent, blindé comme Signal.
+
+**Contrainte absolue :** ZÉRO connexion Internet pendant la démo. Tout doit fonctionner en réseau local ad‑hoc.
+
+---
+
+## 🏆 Livrables par Sprint
+
+### ✅ Sprint 0 — Bootstrap & Architecture (H+0→H+2)
+- [x] Choix du langage (Python 3.12) justifié
+- [x] Transport local: UDP multicast (découverte) + TCP (transfert)
+- [x] Format de paquet binaire v1 défini (MAGIC + TYPE + NODE_ID + LEN + PAYLOAD + HMAC)
+- [x] Génération de clés Ed25519 opérationnelle
+- [x] Premier commit tagué `sprint-0`
+
+### ✅ Sprint 1 — Découverte P2P (H+2→H+8)
+- [x] Découverte UDP multicast fonctionnelle
+- [x] Table des pairs maintenue en mémoire
+- [x] 3 nœuds se découvrent en < 60s
+- [x] Affichage console de la table des pairs
+
+### ✅ Sprint 2 — Chiffrement E2E & Authentification sans CA (H+8→H+13)
+- [x] Identité permanente: Ed25519
+- [x] Échange de clés: X25519 (ECDH) avec forward secrecy
+- [x] Chiffrement: AES-256-GCM (clés de session)
+- [x] Intégrité: HMAC-SHA256
+- [x] Handshake sécurisé (inspiré Noise Protocol)
+- [x] Web of Trust: TOFU + signatures de confiance
+
+### ✅ Sprint 3 — Chunking & Transfert (H+13→H+19)
+- [x] Fragmentation fichiers en chunks de 512 KB
+- [x] Manifeste avec hashes SHA-256
+- [x] Transfert parallèle multi-sources
+- [x] Résilience: reprise si source déconnectée
+- [x] Vérification d'intégrité après transfert
+
+### ✅ Sprint 4 — Intégration & Polish (H+19→H+23)
+- [x] CLI complète et documentée
+- [x] Scripts de démonstration automatisés
+- [x] Gestionnaire de confiance (Web of Trust)
+- [x] Plan B (API locale de secours)
+- [x] Documentation finale prête pour le jury
+
+---
+
+## 🚀 Guide de Démarrage Rapide
+
+### Prérequis
+```bash
+# Python 3.12+ requis
+python3 --version
+
+# Installation des dépendances
+python3 -m venv .venv
+source .venv/bin/activate  # ou .venv\Scripts\activate sous Windows
+pip install -r requirements.txt

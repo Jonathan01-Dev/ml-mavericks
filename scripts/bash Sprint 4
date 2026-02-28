@@ -1,0 +1,6 @@
+# Avec mot de passe interactif
+python -m archipel.main keygen --node node-1
+
+# Avec mot de passe en variable d'environnement
+export ARCHIPEL_PASSWORD="MonMotDePasseFort123!"
+python -m archipel.main keygen --node node-1 --password-env ARCHIPEL_PASSWORD

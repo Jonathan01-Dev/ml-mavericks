@@ -1,0 +1,20 @@
+# ARCHIPEL — Protocole P2P Chiffré Décentralisé
+
+## Équipe
+- Alice Dupont (Cryptographie)
+- Bob Martin (Réseau)
+- Charlie Dubois (Intégration)
+
+## Architecture implémentée
+[Schéma ASCII ou image]
+
+## Choix techniques
+- **Langage** : Python 3.12 (asyncio pour I/O non-bloquant)
+- **Découverte** : UDP Multicast (239.255.42.99:6000)
+- **Transport** : TCP avec sessions chiffrées
+- **Cryptographie** : 
+  - Ed25519 (identité)
+  - X25519 + AES-256-GCM (chiffrement)
+  - SHA-256 (intégrité fichiers)
+
+## Format de paquet

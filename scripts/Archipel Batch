@@ -1,0 +1,6 @@
+@echo off
+echo Installation des dépendances Archipel...
+py -m pip install --upgrade pip
+py -m pip install netifaces cryptography pynacl pycryptodome flask flask-cors waitress
+echo Installation terminee!
+pause
